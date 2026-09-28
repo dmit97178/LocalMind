@@ -1,0 +1,40 @@
+# S04 · 引用旧项目/旧话题（G1 渐进式理解，rounds_ab）
+#
+# 结构断言：主步骤触发 shift_with_reference（"继续/之前"），定向检索命中 prelude
+# 建立的旧话题（retrieval_hits_min=1），本地收敛回答（PLAN_LOCAL）。
+# 人工评分（pair）：引用是否被正确理解与召回；round1 是否丢失引用上下文。
+#
+# 机制对齐（写入前已对代码核实）：
+# - 话题标签 = 输入前 3 个 token（"project apollo 玄武：…" → "project-apollo-玄武"）；
+# - prelude 第 2 轮含 "apollo" → same_topic，标签不变，两轮 episode 同标签落库；
+# - 主步骤不含标签内任何 token（无 "project"/"apollo"/"玄武"，含其 CJK 二字组合），
+#   含强引用词 → shift_with_reference → referenced_topic 作为定向检索 hint；
+# - prelude 输入为陈述性简单任务，round1 变体下一轮完成，A/B 前置逐字一致。
+
+[scenario]
+id = "S04_reference_old_topic"
+title = "引用旧项目/旧话题"
+group = "g1_progressive"
+value_ab = false
+rounds_ab = true
+step_timeout_seconds = 240
+
+[[steps]]
+kind = "user"
+prelude = true
+text = "project apollo 玄武：发布窗口定在周五 22:00，先切 5% 流量。"
+
+[[steps]]
+kind = "user"
+prelude = true
+text = "apollo 回滚预案：保留上一版本镜像 24 小时。"
+
+[[steps]]
+kind = "user"
+text = "继续之前的话题：把上线前检查清单列出来，按顺序编号。"
+expect = { rounds_max = 4, action_any = ["PLAN_LOCAL"], retrieval_hits_min = 1 }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

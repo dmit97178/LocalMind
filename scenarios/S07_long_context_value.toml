@@ -1,0 +1,35 @@
+# S07 · 长上下文综合 · 协同价值（G2 协同价值，value_ab）
+#
+# 结构与链路同 S06；区别在任务形态：三段材料内联在任务文本中（契约 §2.3 前置列
+# 「长材料内联任务文本」，2026-09-12 修订）——跨 session 预置材料会踩 §2.2 的
+# 检索陷阱（hints 按 session 派生），内联让「长上下文综合」独立于检索成功率，
+# A/B 公平性也更干净（canonical task text 逐字节一致）。
+# 人工评分（pair）：跨材料综合的完整性与约束遵守。
+#
+# expect 放置与 S06 相同：云端结构断言全部挂在 allow 步骤。
+
+[scenario]
+id = "S07_long_context_value"
+title = "长上下文综合 · 协同价值"
+group = "g2_value"
+value_ab = true
+rounds_ab = false
+step_timeout_seconds = 300
+
+[[steps]]
+kind = "user"
+cloud_ask = true
+text = "请基于以下三段材料做一次发布决策综述。材料一（监控）：过去 7 天网关错误率 0.2%，高峰 P99 380ms，数据库连接池在夜间批处理时段打满。材料二（变更清单）：本周已上线搜索服务 v3 与结算服务 v2，其中结算 v2 改动了扣款重试逻辑，尚未经过大促流量验证。材料三（约束）：大促期间禁止非灰度发布，客服人力只够支撑一次回滚。任务：给出周五是否发布的明确结论、两个最主要风险与对应缓解措施，以及一套灰度发布与回滚步骤。"
+expect = { rounds_max = 4 }
+
+[[steps]]
+kind = "slash"
+when_variant = "cloud_assisted"
+when_state = "awaiting_cloud_authorization"
+text = "/cloud allow"
+expect = { cloud_any = true, local_reintegrate = true }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

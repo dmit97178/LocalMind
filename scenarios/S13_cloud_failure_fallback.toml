@@ -1,0 +1,35 @@
+# S13 · 云端失败/超时后本地收敛（g3 降级链路）
+#
+# 故障注入：cloud_fault="timeout"——运行器按铁律 5 以配置短超时 / transport 级注入
+# 制造云端故障，不在 Core 加测试分支（§3.2：云端真实可用性由调用结果判定）。
+#
+# 结构断言：allow 步骤的 turn 内云端链路被尝试（cloud_consult outbound 事件出现）
+# 但以失败告终（无 cloud_return → local_reintegrate=false），App 发出 degradation
+# 事件（component=cloud）并本地收敛——冷却 + 降级回复（P4 失败语义）。
+# 人工评分（single）：降级回复是否可用。
+#
+# 由自动化测试覆盖为主（§2.4）；本场景作为长期评估库的真实链路复验保留。
+
+[scenario]
+id = "S13_cloud_failure_fallback"
+title = "云端失败/超时后本地收敛"
+group = "g3_autonomy"
+value_ab = false
+rounds_ab = false
+cloud_fault = "timeout"
+step_timeout_seconds = 300
+
+[[steps]]
+kind = "slash"
+text = "/cloud ask 分析这份堆栈转储的可能根因，并给出排查顺序。"
+
+[[steps]]
+kind = "slash"
+when_state = "awaiting_cloud_authorization"
+text = "/cloud allow"
+expect = { cloud_any = true, local_reintegrate = false, degradation_any = true }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

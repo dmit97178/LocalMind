@@ -1,0 +1,36 @@
+[scenario]
+id = "S19_external_tool_unavailable"
+title = "外部工具可用性与本地工具非干扰"
+group = "g4_capability"
+variants = ["mcp_on", "mcp_off"]
+
+[[steps]]
+kind = "user"
+text = "请把这段 JSON 格式化：{\"b\":2,\"a\":1}"
+when_variant = "mcp_on"
+[steps.expect]
+tool_any = ["demo.json_format"]
+capability_any = ["routed"]
+
+[[steps]]
+kind = "user"
+text = "请把这段 JSON 格式化：{\"b\":2,\"a\":1}"
+when_variant = "mcp_off"
+[steps.expect]
+tool_none = true
+capability_any = ["unavailable"]
+action_any = ["PLAN_LOCAL"]
+cloud_any = false
+
+[[steps]]
+kind = "user"
+text = "查看工作区 notes.txt 的文件属性"
+[steps.expect]
+tool_any = ["file.stat"]
+capability_any = ["routed"]
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+[steps.expect]
+output_contains = "会话已结束"

@@ -1,0 +1,18 @@
+# Optional cloud advisory configuration. Keep API keys outside TOML.
+
+[cloud_advisory]
+enabled = true
+provider = "deepseek"
+privacy_mode = "balanced"
+max_turns_per_task = 3
+max_context_items = 12
+context_byte_budget = 32768
+cooldown_seconds = 300
+grant_ttl_seconds = 600
+
+[cloud_advisory.connection]
+model = "deepseek-v4-flash"
+request_timeout_seconds = 60
+
+[cloud_advisory.policy]
+allowed_scope = "仅提供分析建议，不生成执行命令或计划"

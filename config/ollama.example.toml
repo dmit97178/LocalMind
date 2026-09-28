@@ -1,0 +1,114 @@
+# Copy or pass this file directly to scripts/run_p1.py after Ollama is running.
+
+[model_backend]
+type = "ollama"
+
+[model_backend.config]
+model = "qwen3:4b"
+base_url = "http://localhost:11434"
+keep_alive = "30m"
+request_timeout_seconds = 120
+think = false
+num_ctx = 4096
+options = { temperature = 0.0 }
+
+[memory_backend]
+type = "in_memory"
+
+[memory_backend.config]
+
+[memory_backend.config.embedding]
+type = "none"
+
+[memory_backend.config.retrieval]
+keyword_weight = 0.6
+vector_weight = 0.4
+max_context_bytes = 4096
+same_project_boost = 0.1
+
+[projects]
+auto_create = true
+summary_max_chars = 2000
+
+[tool_backend]
+type = "builtin_only"
+
+[tool_backend.config]
+whitelist = ["system.get_time", "file.read", "file.list_dir", "file.stat", "file.write", "weather.current", "document.read", "file.search"]
+
+[tools]
+workspace_root = "./data/workspace"
+
+[tools.weather]
+provider = "open_meteo"
+
+[tools.weather.connection]
+connect_timeout_seconds = 5
+read_timeout_seconds = 10
+
+[tools.documents]
+max_file_bytes = 33554432
+max_extracted_chars = 500000
+max_segments_total = 20000
+max_returned_segments = 200
+max_returned_chars = 40000
+max_zip_entries = 2000
+max_uncompressed_bytes = 268435456
+
+[tools.search]
+max_results = 50
+max_results_per_file = 5
+max_line_chars = 500
+context_lines = 1
+timeout_ms = 5000
+max_file_bytes = 2097152
+ignore = []
+
+[reflow]
+enabled = true
+max_chars = 4000
+
+[capability_routing]
+enabled = true
+
+[observability]
+event_jsonl_path = ""
+
+[safety]
+backend = "rule_only"
+l2_enabled = false
+
+[safety.l1_rules]
+forbidden_commands = ["rm -rf /", "dd if=", "mkfs.", ":(){ :|:& };"]
+forbidden_paths = ["/etc/passwd", "/etc/shadow", "C:\\Windows\\System32", "~/.ssh"]
+sensitive_patterns = []
+
+[safety.passphrase]
+hash_file = "./data/.passphrase"
+lockout_attempts = 5
+lockout_minutes = 10
+
+[cloud_advisory]
+enabled = true
+provider = "deepseek"
+privacy_mode = "balanced"
+max_turns_per_task = 3
+max_context_items = 12
+context_byte_budget = 32768
+cooldown_seconds = 300
+grant_ttl_seconds = 600
+
+[cloud_advisory.connection]
+model = "deepseek-v4-flash"
+request_timeout_seconds = 60
+
+[cloud_advisory.policy]
+allowed_scope = "仅提供分析建议，不生成执行命令或计划"
+
+[evolution]
+enabled = false
+backend = "noop"
+
+[execution]
+intent_max_rounds = 4
+expert_scheduler_enabled = false

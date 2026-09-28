@@ -1,0 +1,26 @@
+# S02 · 信息不足有效追问（G1 渐进式理解，rounds_ab）
+#
+# 结构断言：信息不足的模糊输入 → ASK_USER 收尾；round1 变体不得在信息不足时硬答
+# （round1 下同样必须以 ASK_USER 结束——这是 G1 的核心对照信号）。
+# 人工评分（pair）：追问是否切中真正缺失的信息。
+#
+# 输入设计：无先行语境、指代悬空（"那个服务"），检索库为空、无可补全信息；
+# 不含新话题词（"另外"/"另一个"），不触发云端建议（未 READY 不会进入升级判断）。
+
+[scenario]
+id = "S02_ask_user_when_insufficient"
+title = "信息不足有效追问"
+group = "g1_progressive"
+value_ab = false
+rounds_ab = true
+step_timeout_seconds = 240
+
+[[steps]]
+kind = "user"
+text = "把那个服务发布上去。"
+expect = { rounds_max = 4, action_any = ["ASK_USER"], reference_guard_any = true }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

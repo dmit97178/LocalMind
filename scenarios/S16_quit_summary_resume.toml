@@ -1,0 +1,44 @@
+# S16 · 会话退出摘要与恢复（g0 会话收尾，[[run]] 多段）
+#
+# 两段结构（§2.1 [[run]]，段间共享实例 data 目录、每段新 session——
+# 「重启后检索可达」语义的唯一合法载体）：
+# - r1：prelude 建立项目内容（照常落库、不计统计）→ /quit 落会话摘要；
+# - r2：新 session 新进程，仅凭共享 SQLite 检索 r1 内容（关键词命中 "apollo"），
+#   本地收敛回答——「恢复」只可能经检索发生（§3.5 多段共享）。
+# 结构断言：/quit 回显（摘要已保存）、r2 检索命中 + PLAN_LOCAL；
+# 「摘要是否保留要点」人工评分（single，评分对象为 r2 回复）。
+# 由自动化测试覆盖为主（§2.4）；保留为长期评估库的真实链路复验。
+
+[scenario]
+id = "S16_quit_summary_resume"
+title = "会话退出摘要与恢复"
+group = "g0_basic"
+value_ab = false
+rounds_ab = false
+step_timeout_seconds = 240
+
+[[run]]
+id = "r1"
+
+[[run.steps]]
+kind = "user"
+prelude = true
+text = "project apollo 玄武：发布窗口定在周五 22:00，灰度从 5% 开始。"
+
+[[run.steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }
+
+[[run]]
+id = "r2"
+
+[[run.steps]]
+kind = "user"
+text = "总结一下 apollo 的发布安排，并指出还缺哪些准备。"
+expect = { rounds_max = 4, action_any = ["PLAN_LOCAL"], retrieval_hits_min = 1 }
+
+[[run.steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

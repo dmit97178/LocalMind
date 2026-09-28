@@ -1,0 +1,24 @@
+# Copy the P5 sections into a local TOML configuration to enable local semantic retrieval.
+
+[memory_backend]
+type = "sqlite"
+
+[memory_backend.config]
+db_path = "./data/memory.db"
+
+[memory_backend.config.embedding]
+type = "ollama"
+base_url = "http://localhost:11434"
+model = "nomic-embed-text"
+dim = 0
+timeout_seconds = 5
+
+[memory_backend.config.retrieval]
+keyword_weight = 0.6
+vector_weight = 0.4
+max_context_bytes = 4096
+same_project_boost = 0.1
+
+[projects]
+auto_create = true
+summary_max_chars = 2000

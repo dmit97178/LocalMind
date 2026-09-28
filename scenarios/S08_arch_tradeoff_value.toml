@@ -1,0 +1,34 @@
+# S08 · 架构权衡 · 协同价值（G2 协同价值，value_ab）
+#
+# 结构与链路同 S06：cloud_assisted 完整受控云端链路 + local_reintegrate=true；
+# local_only 本地收敛不崩；两变体单次正式任务（canonical task text 一致）。
+# 人工评分（pair）：匿名并列——完整性 / 推理质量 / 约束遵守。
+#
+# 输入设计：开放式权衡题，答案无唯一解但要求明确的维度、结论与适用条件——
+# 本地小模型与云端协助的差距应体现在权衡深度与约束完整性上。
+
+[scenario]
+id = "S08_arch_tradeoff_value"
+title = "架构权衡 · 协同价值"
+group = "g2_value"
+value_ab = true
+rounds_ab = false
+step_timeout_seconds = 300
+
+[[steps]]
+kind = "user"
+cloud_ask = true
+text = "在自建 Kubernetes 集群与托管容器服务之间做选型：给出至少四个评估维度（如成本、运维、弹性、合规）、每个维度的权衡分析、一个明确结论，以及该结论不适用的条件。"
+expect = { rounds_max = 4 }
+
+[[steps]]
+kind = "slash"
+when_variant = "cloud_assisted"
+when_state = "awaiting_cloud_authorization"
+text = "/cloud allow"
+expect = { cloud_any = true, local_reintegrate = true }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

@@ -1,0 +1,34 @@
+# S15 · embedding 不可用降级（g0 检索降级）
+#
+# 变体：variants=["embedding_none"]（§2.1 显式变体集；本场景不跑 base）。
+#
+# 结构断言：embedding 关闭 → 每次检索为正常的关键词单路径，不产生虚假的
+# degradation 事件；检索仍命中预置 episode
+# （retrieval_hits_min=1——预置文本与查询共享 "apollo"/"发布窗口" 等词元，
+# 关键词检索跨 session 全库命中），回答本地收敛。
+# 由自动化测试覆盖为主（§2.4）；保留为长期评估库的真实链路复验。
+
+[scenario]
+id = "S15_embedding_unavailable"
+title = "embedding 不可用降级"
+group = "g0_basic"
+value_ab = false
+rounds_ab = false
+variants = ["embedding_none"]
+step_timeout_seconds = 240
+
+[[setup]]
+kind = "episode"
+session_id = "sess_preset_s15"
+text = "apollo 项目进展：网关压测通过，发布窗口定在周五 22:00。"
+metadata = { topic = "apollo 进展", project_id = "" }
+
+[[steps]]
+kind = "user"
+text = "总结一下 apollo 项目当前的进展和发布窗口。"
+expect = { rounds_max = 4, action_any = ["PLAN_LOCAL"], retrieval_hits_min = 1, degradation_any = false }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

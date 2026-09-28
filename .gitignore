@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+.pytest_cache/
+.pytest_basetemp/
+.pytest-tmp/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local agent state
+.agents/
+.claude/
+.codex/
+
+# Project data
+data/*
+!data/.gitkeep
+
+# Environment
+.env
+.env.local
+.env.*
+!.env.example
+config/local.toml
+config/*.local.toml
+
+# Local databases and logs outside data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

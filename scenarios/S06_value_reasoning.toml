@@ -1,0 +1,60 @@
+# S06 · 复杂推理任务协同价值（G2 协同价值，value_ab）
+#
+# 结构断言：cloud_assisted 变体走完整受控云端链路——/cloud ask 渲染任务文本 →
+# 授权等待（cloud_consult authorization_required）→ /cloud allow → 云端咨询 →
+# 本地重新整合（local_reintegrate=true，B 定义的结构保证，§4 条款 5）。
+# local_only 变体不进入云端链路（cloud_advisory.enabled=false → ControlPolicy 短路），
+# allow 步骤经 when_variant 在 local_only 整步良性跳过；cloud_assisted 下授权等待
+# 未满足即结构失败（§2.1 when_state 语义，跳过不得掩盖链路缺席）。两变体都只执行一次正式任务（§2.1 cloud_ask）。
+# 人工评分（pair）：匿名并列——完整性 / 推理质量 / 约束遵守。
+#
+# expect 放置：云端结构断言全部挂在 allow 步骤（其 turn 内发生 consult 与 return）；
+# 任务步骤只断言理解轮上限，不断言 action（A 侧可能是 PLAN_LOCAL 或 ASK_USER，均合法）。
+
+[scenario]
+id = "S06_value_reasoning"
+title = "复杂推理任务协同价值"
+group = "g2_value"
+value_ab = true
+rounds_ab = false
+variants = ["local_only", "cloud_assisted", "cloud_auto"]
+step_timeout_seconds = 300
+
+[[steps]]
+kind = "user"
+when_variant = "local_only"
+text = "我们的 API 网关在高峰期 P99 延迟从 80ms 涨到 400ms：给出至少三个可能根因的排查顺序、每个根因的验证方法，以及一个不影响线上流量的验证方案。"
+expect = { rounds_max = 4 }
+
+[[steps]]
+kind = "user"
+when_variant = "cloud_assisted"
+cloud_ask = true
+text = "我们的 API 网关在高峰期 P99 延迟从 80ms 涨到 400ms：给出至少三个可能根因的排查顺序、每个根因的验证方法，以及一个不影响线上流量的验证方案。"
+expect = { rounds_max = 4 }
+
+[[steps]]
+kind = "user"
+when_variant = "cloud_auto"
+text = "我们的 API 网关在高峰期 P99 延迟从 80ms 涨到 400ms：给出至少三个可能根因的排查顺序、每个根因的验证方法，以及一个不影响线上流量的验证方案。"
+expect = { rounds_max = 4 }
+
+[[steps]]
+kind = "slash"
+when_variant = "cloud_assisted"
+when_state = "awaiting_cloud_authorization"
+text = "/cloud allow"
+expect = { cloud_any = true, local_reintegrate = true }
+
+[[steps]]
+kind = "slash"
+when_variant = "cloud_auto"
+when_state = "awaiting_cloud_authorization"
+on_unmet = "skip"
+text = "/cloud allow"
+expect = { cloud_any = true, local_reintegrate = true }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

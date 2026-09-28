@@ -1,0 +1,94 @@
+# P6b-only template. The runner replaces INSTANCE_DIR and EMBEDDING_TYPE.
+
+[model_backend]
+type = "ollama"
+
+[model_backend.config]
+model = "qwen3:4b"
+base_url = "http://localhost:11434"
+keep_alive = "30m"
+request_timeout_seconds = 120
+think = false
+num_ctx = 4096
+options = { temperature = 0.0 }
+
+[memory_backend]
+type = "sqlite"
+
+[memory_backend.config]
+db_path = "{{INSTANCE_DIR}}/memory.sqlite3"
+max_search_episodes = 500
+
+[memory_backend.config.embedding]
+type = "{{EMBEDDING_TYPE}}"
+base_url = "http://localhost:11434"
+model = "nomic-embed-text"
+dim = 0
+timeout_seconds = 5
+
+[memory_backend.config.retrieval]
+keyword_weight = 0.6
+vector_weight = 0.4
+max_context_bytes = 4096
+same_project_boost = 0.1
+
+[projects]
+auto_create = true
+summary_max_chars = 2000
+
+[tool_backend]
+type = "builtin_only"
+
+[tool_backend.config]
+whitelist = ["system.get_time", "file.read", "file.list_dir", "file.stat", "file.write", "weather.current"] # {{DOC_TOOLS}}
+
+[tools]
+workspace_root = "{{INSTANCE_DIR}}/workspace"
+
+[tools.weather]
+provider = "{{WEATHER_PROVIDER}}"
+
+[capability_routing]
+enabled = true # {{CAPABILITY_ROUTING_ENABLED}}
+
+[observability]
+event_jsonl_path = ""
+
+[safety]
+backend = "rule_only"
+l2_enabled = false
+
+[safety.l1_rules]
+forbidden_commands = ["rm -rf /", "dd if=", "mkfs.", ":(){ :|:& };"]
+forbidden_paths = ["/etc/passwd", "/etc/shadow", "C:\\Windows\\System32", "~/.ssh"]
+sensitive_patterns = []
+
+[safety.passphrase]
+hash_file = "{{INSTANCE_DIR}}/.passphrase"
+lockout_attempts = 5
+lockout_minutes = 10
+
+[cloud_advisory]
+enabled = true
+provider = "deepseek"
+privacy_mode = "balanced"
+max_turns_per_task = 3
+max_context_items = 12
+context_byte_budget = 32768
+cooldown_seconds = 300
+grant_ttl_seconds = 600
+
+[cloud_advisory.connection]
+model = "deepseek-v4-flash"
+request_timeout_seconds = 60
+
+[cloud_advisory.policy]
+allowed_scope = "仅提供分析建议，不生成执行命令或计划"
+
+[evolution]
+enabled = false
+backend = "noop"
+
+[execution]
+intent_max_rounds = 4
+expert_scheduler_enabled = false

@@ -1,0 +1,27 @@
+# S09 · 复杂任务自主建议上云（G3 自主升级）
+#
+# 结构断言：故意留空——本场景观察「模型建议 + ControlPolicy 裁决」，两种裁决
+# 都是合法结局：通过 → REQUEST_CLOUD → 授权等待（cloud_consult authorization_required）；
+# 否决/未建议 → 本地收敛。事件流完整记录两条路径，报告聚合「自主建议率」（§6 G3）。
+# 人工评分（single）：本地模型是否正确识别能力边界（escalation_necessity）。
+#
+# 输入设计：多步迁移规划任务，自足（不缺关键信息，模型应 READY 而非追问），
+# 难度超出本地小模型舒适区但无工具诉求——正是「该升则升」的形态。
+
+[scenario]
+id = "S09_autonomous_escalation"
+title = "复杂任务自主建议上云"
+group = "g3_autonomy"
+value_ab = false
+rounds_ab = false
+step_timeout_seconds = 300
+
+[[steps]]
+kind = "user"
+text = "评估把我们单体后端拆成两个微服务的迁移风险，给出分阶段迁移方案与回退策略。"
+expect = { rounds_max = 4 }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

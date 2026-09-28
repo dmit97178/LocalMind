@@ -1,0 +1,33 @@
+# Weather enabled: missing location is supplied by the next user turn without a model call.
+
+[scenario]
+id = "S18_weather_followup"
+title = "天气查询与缺参续接"
+group = "g4_capability"
+value_ab = false
+rounds_ab = false
+variants = ["weather_on", "weather_off"]
+step_timeout_seconds = 240
+
+[[steps]]
+kind = "user"
+when_variant = "weather_on"
+text = "今天天气怎么样"
+expect = { action_any = ["ASK_USER"], tool_none = true, rounds_max = 2 }
+
+[[steps]]
+kind = "user"
+when_variant = "weather_on"
+text = "南京"
+expect = { tool_any = ["weather.current"], capability_any = ["routed"], rounds_min = 0, rounds_max = 0 }
+
+[[steps]]
+kind = "user"
+when_variant = "weather_off"
+text = "今天南京天气怎么样"
+expect = { capability_any = ["unavailable"], tool_none = true, cloud_any = false }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

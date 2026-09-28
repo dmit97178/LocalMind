@@ -1,0 +1,34 @@
+[scenario]
+id = "S21_workspace_search"
+title = "工作区文件名与内容搜索"
+group = "g4_capability"
+variants = ["docs_on", "docs_off"]
+step_timeout_seconds = 240
+
+[[setup]]
+kind = "workspace_file"
+path = "notes/todo.md"
+content = "TODO：补充实验结论。\n"
+
+[[steps]]
+kind = "user"
+text = "在工作区里搜一下 TODO"
+when_variant = "docs_on"
+expect = { tool_any = ["file.search"], capability_any = ["routed"], result_delivery_any = ["model_summary"] }
+
+[[steps]]
+kind = "user"
+text = "搜文件名含 todo 的文件"
+when_variant = "docs_on"
+expect = { tool_any = ["file.search"] }
+
+[[steps]]
+kind = "user"
+text = "在工作区里搜一下 TODO"
+when_variant = "docs_off"
+expect = { tool_none = true, capability_any = ["unavailable"] }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

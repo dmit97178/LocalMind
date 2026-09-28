@@ -1,0 +1,27 @@
+# S11 · 用户禁止上云（G3 指令优先级）
+#
+# 结构断言：/cloud off <任务> 否决指令 → ControlPolicy 内短路（deny_cloud=true →
+# _should_request_cloud 恒 false，不产生任何 cloud_consult 事件）→ 本地收敛（PLAN_LOCAL）、
+# 无云端网络尝试（cloud_any=false）——否决优先级高于一切模型建议（P4 语义）。
+# 人工评分（single）：禁止指令是否被最高优先级执行、回答是否可用。
+#
+# 输入设计：与 S09 同形态的复杂任务——S09 中它可能触发建议，此处同一难度被
+# 用户显式禁止，对照「建议存在性不影响否决」。
+
+[scenario]
+id = "S11_cloud_forbidden"
+title = "用户禁止上云"
+group = "g3_autonomy"
+value_ab = false
+rounds_ab = false
+step_timeout_seconds = 300
+
+[[steps]]
+kind = "slash"
+text = "/cloud off 评估把单体后端拆分为两个微服务的迁移风险，给出分阶段方案。"
+expect = { rounds_max = 4, action_any = ["PLAN_LOCAL"], cloud_any = false }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

@@ -1,0 +1,38 @@
+[scenario]
+id = "S20_document_read"
+title = "本地文档读取、确认与回流"
+group = "g4_capability"
+variants = ["docs_on", "docs_off"]
+step_timeout_seconds = 240
+
+[[setup]]
+kind = "identity"
+passphrase = "eval-pass-0000"
+
+[[setup]]
+kind = "workspace_file"
+path = "notes/notes.md"
+content = "项目目标：完成本地文档总结。\n结论：工具结果必须保持来源定位。\n"
+
+[[steps]]
+kind = "user"
+text = "读取 notes/notes.md 的内容并总结一下。"
+when_variant = "docs_on"
+expect = { confirmation_required = true, tool_none = true }
+
+[[steps]]
+kind = "user"
+text = "确认 eval-pass-0000"
+when_variant = "docs_on"
+expect = { tool_any = ["document.read"], capability_any = ["routed"], result_delivery_any = ["model_summary"], output_not_contains = ["eval-pass-0000"] }
+
+[[steps]]
+kind = "user"
+text = "读取 notes/notes.md 的内容并总结一下。"
+when_variant = "docs_off"
+expect = { tool_none = true, capability_any = ["unavailable"], cloud_any = false }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

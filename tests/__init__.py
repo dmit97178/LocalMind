@@ -1,0 +1,1 @@
+"""LocalMind tests."""

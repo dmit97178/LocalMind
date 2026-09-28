@@ -1,0 +1,8 @@
+# P2 SQLite persistence example. Use this as the memory section in a full app config.
+
+[memory_backend]
+type = "sqlite"
+
+[memory_backend.config]
+db_path = "./data/memory.db"
+max_search_episodes = 500

@@ -1,0 +1,24 @@
+# S01 · 简单任务一轮收敛（g0 结构基线）
+#
+# 结构断言：自足简单任务恰好一轮收敛（rounds_min=rounds_max=1）、本地回答（PLAN_LOCAL）、
+# 全程无云端事件（cloud_any=false）。g0 由自动化测试覆盖为主（§2.4），
+# 本场景作为长期评估库的基线锚点保留。
+# 人工评分（single）：完成正确性。
+
+[scenario]
+id = "S01_simple_one_round"
+title = "简单任务一轮收敛"
+group = "g0_basic"
+value_ab = false
+rounds_ab = false
+step_timeout_seconds = 240
+
+[[steps]]
+kind = "user"
+text = "用一句话解释什么是幂等性。"
+expect = { rounds_min = 1, rounds_max = 1, action_any = ["PLAN_LOCAL"], cloud_any = false }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

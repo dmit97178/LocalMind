@@ -1,0 +1,81 @@
+# LocalMind P0a default configuration.
+# Parsed with Python 3.11+ tomllib; no runtime dependency is required.
+
+[model_backend]
+type = "mock"
+
+[model_backend.config]
+model = "mock-model"
+
+[memory_backend]
+type = "in_memory"
+
+[memory_backend.config]
+
+[memory_backend.config.embedding]
+type = "none"
+base_url = "http://localhost:11434"
+model = "nomic-embed-text"
+dim = 0
+timeout_seconds = 5
+
+[memory_backend.config.retrieval]
+keyword_weight = 0.6
+vector_weight = 0.4
+max_context_bytes = 4096
+same_project_boost = 0.1
+
+[projects]
+auto_create = true
+summary_max_chars = 2000
+
+[tool_backend]
+type = "builtin_only"
+
+[tool_backend.config]
+whitelist = ["system.echo", "system.get_time", "file.read", "file.list_dir", "file.write"]
+
+[tools]
+workspace_root = "./data/workspace"
+
+[observability]
+event_jsonl_path = ""
+
+[safety]
+backend = "rule_only"
+l2_enabled = false
+
+[safety.l1_rules]
+forbidden_commands = ["rm -rf /", "dd if=", "mkfs.", ":(){ :|:& };"]
+forbidden_paths = ["/etc/passwd", "/etc/shadow", "C:\\Windows\\System32", "~/.ssh"]
+sensitive_patterns = []
+
+[safety.passphrase]
+hash_file = "./data/.passphrase"
+lockout_attempts = 5
+lockout_minutes = 10
+
+[cloud_advisory]
+enabled = false
+provider = "noop"
+privacy_mode = "balanced"
+max_turns_per_task = 3
+max_context_items = 12
+context_byte_budget = 32768
+cooldown_seconds = 300
+grant_ttl_seconds = 600
+
+[cloud_advisory.connection]
+model = ""
+request_timeout_seconds = 60
+
+[cloud_advisory.policy]
+allowed_scope = "仅提供分析建议，不生成执行命令或计划"
+
+[evolution]
+enabled = false
+backend = "noop"
+
+[execution]
+intent_max_rounds = 4
+expert_scheduler_enabled = false

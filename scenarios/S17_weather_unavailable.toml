@@ -1,0 +1,20 @@
+# Weather disabled: the agent must not fabricate current conditions or call another tool.
+
+[scenario]
+id = "S17_weather_unavailable"
+title = "天气能力缺失时诚实失败"
+group = "g4_capability"
+value_ab = false
+rounds_ab = false
+variants = ["weather_off"]
+step_timeout_seconds = 240
+
+[[steps]]
+kind = "user"
+text = "今天南京市天气怎么样"
+expect = { capability_any = ["unavailable"], action_any = ["PLAN_LOCAL"], tool_none = true, cloud_any = false }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

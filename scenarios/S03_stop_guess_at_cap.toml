@@ -1,0 +1,28 @@
+# S03 · 四轮不清停止猜测（G1 渐进式理解，rounds_ab）
+#
+# 结构断言：场景内不可补全的输入 → 两种变体都以 ASK_USER 收尾（round1 一轮即问、
+# round4 耗尽理解轮上限后停止猜测），且全程零工具执行（tool_none=true——
+# 「停止猜测而非乱执行」的直接结构信号）。rounds_max=4 对两变体均成立
+# （round1 变体的轮数受配置封顶，断言不冗余）。
+# 人工评分（pair）：是否停止猜测而非乱执行；misexecution 指标（§5.3 G1）。
+#
+# 输入设计：多处以"我们系统/新集群"指代未定义对象，场景内无任何可检索补全——
+# 信息在场景外，正确行为只能是问，错误行为是编造计划执行。
+
+[scenario]
+id = "S03_stop_guess_at_cap"
+title = "四轮不清停止猜测"
+group = "g1_progressive"
+value_ab = false
+rounds_ab = true
+step_timeout_seconds = 240
+
+[[steps]]
+kind = "user"
+text = "请安排一次内部培训，但培训主题、参与对象和时间都还没有确定。"
+expect = { rounds_max = 4, action_any = ["ASK_USER"], tool_none = true }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }

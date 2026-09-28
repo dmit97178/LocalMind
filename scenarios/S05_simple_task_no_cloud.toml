@@ -1,0 +1,25 @@
+# S05 · 简单任务不上云（G3 自主升级）
+#
+# 结构断言：简单自足任务本地收敛（PLAN_LOCAL），全程无云端事件（cloud_any=false）。
+# 人工评分（single）：完成正确性；g3 指标——简单任务误升率（报告聚合）。
+#
+# 输入设计：一句话可答的定义性问题，无工具诉求（suggested_tools 为空）、
+# 无升级理由（expected_benefit 低于阈值即不构成建议）——云端配置可用但不该用。
+
+[scenario]
+id = "S05_simple_task_no_cloud"
+title = "简单任务不上云"
+group = "g3_autonomy"
+value_ab = false
+rounds_ab = false
+step_timeout_seconds = 240
+
+[[steps]]
+kind = "user"
+text = "用一句话解释什么是蓝绿发布。"
+expect = { rounds_max = 4, action_any = ["PLAN_LOCAL"], cloud_any = false }
+
+[[steps]]
+kind = "slash"
+text = "/quit"
+expect = { output_contains = "会话已结束" }
