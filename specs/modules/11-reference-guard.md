@@ -267,7 +267,7 @@ def detect_unresolved_reference(
 
 ### 3.1 `is_effectively_ready()` 语义不变
 
-护栏**不读**该函数、**不修改**它。`READY` 的判定含义（`project-plan.md` 定义式：`state == "READY"` 或高置信度且无 `missing_info` 且 `intent_type` 具体）逐字保留。护栏在 `decide()` 中的位置在 `is_effectively_ready` 分支**之前**，因此对 `READY` 候选同样生效——**这不需要也不允许改动该函数**。
+护栏**不读**该函数、**不修改**它。`READY` 的判定含义（`05-p4-cloud-advisory.md` §1.3 定义式：`state == "READY"` 或高置信度且无 `missing_info` 且 `intent_type` 具体）逐字保留。护栏在 `decide()` 中的位置在 `is_effectively_ready` 分支**之前**，因此对 `READY` 候选同样生效——**这不需要也不允许改动该函数**。
 
 ### 3.2 P4 双判定拆分不回退（逐条对账）
 
@@ -375,7 +375,7 @@ dangerous、`force_cloud`、`deny_cloud`、provider 可用性、预算与冷却�
 | 3 | `unattributed_ask` | 动作 = `ASK_USER` **且非** ①② | **接线/归因缺陷信号**（**不计入**模型校准成功率，也**不计入**兜底率） |
 | 4 | `failed` | 动作 ≠ `ASK_USER` | 结构性失败 |
 
-**②必须显式要求 `reference_guard_result = triggered`**（实现前审查第 2 项）：早期写法把 ② 定义为「`ASK_USER` 且非 ①」的**补集**，于是**任何**其它路径产生的 `ASK_USER` 都被误记为「护栏救援」。实测存在这样的路径——`state=READY` 且 `missing_info` 非空时，`_decide_ready()` 本身就会返回 `ASK_USER`（`project-plan.md` 决策表第 3 行「模型声称就绪却有缺失信息，矛盾信号」），此时护栏可能返回 `not_triggered`，但 ② 仍会点亮。**兜底率因此可能在护栏完全失效时依然漂亮。**
+**②必须显式要求 `reference_guard_result = triggered`**（实现前审查第 2 项）：早期写法把 ② 定义为「`ASK_USER` 且非 ①」的**补集**，于是**任何**其它路径产生的 `ASK_USER` 都被误记为「护栏救援」。实测存在这样的路径——`state=READY` 且 `missing_info` 非空时，`_decide_ready()` 本身就会返回 `ASK_USER`（`05-p4-cloud-advisory.md` §1.3 决策表第 3 行「模型声称就绪却有缺失信息，矛盾信号」），此时护栏可能返回 `not_triggered`，但 ② 仍会点亮。**兜底率因此可能在护栏完全失效时依然漂亮。**
 
 **③ `unattributed_ask` 是本次新增的必要出口**：`ASK_USER` 既非模型表达、也非护栏触发，说明追问来自某个**未被本契约建模的路径**（如上述 `READY + missing_info` 分流、`resolution_exhausted` 分流、`no_progress` 分流）。它不是「行为失败」（系统确实追问了），但它是**归因失败**，必须单列而不许并进 ②，否则护栏的覆盖情况不可证伪。S02 报告中 ③ > 0 即需逐 run 回溯是哪条路径。
 
@@ -597,7 +597,7 @@ class ControlPolicy:
 | 日期 | 决策 | 内容 |
 |---|---|---|
 | 2026-09-16 | **撤回 M2 的保证，统一 fail-open**（阻塞项 1） | 见 §2.2「M2 的并入」。`把那个删掉`（M2：指示词 + 量词、无中心语）与「有中心语但名词不在封闭集内」（未识别 M1）在**窗口上看不出差别**——都是「那个 + 8 字符内无封闭集成员」。要在不引入分词器/动作词表的前提下确定性区分二者，只能新增**封闭动作后缀规则**，那会把动作词表引进本契约（超出「薄契约、不引入通用 NLP」的边界）。**裁决：v1 直接删除 M2 的保证**，两种形态统一 fail-open 不触发。代价＝`把那个删掉` 退回模型判断，**不劣于本契约之前的状态**。已核对 16 场景：**无一依赖 M2**（只有 S02 含裸「那个」，且它是 M1）。测试锁：§7 第 15b 项（与第 15 项成对——两行必须同判）；恢复前置条件登记于 §10.2 |
-| 2026-09-16 | **`guard_rescued` 必须显式要求 `reference_guard_result = triggered`；新增 `unattributed_ask`**（阻塞项 2） | 见 §6.2。原定义把 ② 写成「`ASK_USER` 且非 ①」的**补集**，于是**任何**其它路径的 `ASK_USER` 都被记为「护栏救援」——实测路径：`state=READY` 且 `missing_info` 非空时 `_decide_ready()` 自身返回 `ASK_USER`（`project-plan.md` 决策表第 3 行），此时护栏可为 `not_triggered`，② 仍会点亮 → **兜底率在护栏完全失效时依然漂亮**。改为 ② 须 `triggered`；既不属模型表达、也不属护栏触发的 `ASK_USER` 单列 **③ `unattributed_ask`**（归因失败信号，**不计入**兜底率也不计入模型成功率）。测试锁：§7 第 32b 项。另：`model_asked` 的判据**保持不含**护栏字段（第一轮已定）——两处结论并存的原因是用途不同：态判定评价**模型**，场景断言验证**护栏** |
+| 2026-09-16 | **`guard_rescued` 必须显式要求 `reference_guard_result = triggered`；新增 `unattributed_ask`**（阻塞项 2） | 见 §6.2。原定义把 ② 写成「`ASK_USER` 且非 ①」的**补集**，于是**任何**其它路径的 `ASK_USER` 都被记为「护栏救援」——实测路径：`state=READY` 且 `missing_info` 非空时 `_decide_ready()` 自身返回 `ASK_USER`（`05-p4-cloud-advisory.md` §1.3 决策表第 3 行），此时护栏可为 `not_triggered`，② 仍会点亮 → **兜底率在护栏完全失效时依然漂亮**。改为 ② 须 `triggered`；既不属模型表达、也不属护栏触发的 `ASK_USER` 单列 **③ `unattributed_ask`**（归因失败信号，**不计入**兜底率也不计入模型成功率）。测试锁：§7 第 32b 项。另：`model_asked` 的判据**保持不含**护栏字段（第一轮已定）——两处结论并存的原因是用途不同：态判定评价**模型**，场景断言验证**护栏** |
 | 2026-09-16 | **S02 加硬断言 `reference_guard_any = true`，同时**推翻**早期「会永久红」的拒绝理由**（阻塞项 2 后半） | 见 §6.2。S02 输入固定「把那个服务发布上去。」、无先行轮次、`relevant_history` 为空、`project_state` 仅 `{project_id, summary=""}` → 护栏**确定性命中**，且护栏**不读任何模型字段**。因此「护栏触发」是**输入的性质**而非模型能力的性质，断言它**不会**随模型不改进而永久红——早期拒绝理由只对「护栏行为取决于模型」的场景成立，而本契约从构造上排除了这种可能。加上后 S02 才真正验证**确定性保证路径在工作**：`action_any=["ASK_USER"]` 只是行为门，`reference_guard_any=true` 才是**确定性保证门**，挡住「检测器错误返回 `not_triggered`、而 `ASK_USER` 由别的路径给出」这一整类假通过。覆盖脚本改动＝§8 步骤 9b |
 | 2026-09-16 | **修正两处同步残留** | ① `08-p6b-evaluation-loop.md:159` 仍要求 S02 `missing_info` 非空——与 §6.2 的四态冲突（`guard_rescued` 允许 `missing_info` 为空）。改为「**只有 `model_asked` 要求 `missing_info` 非空**」。② `clarifications.md:41` 仍提 `_FUNCTION_WORDS`（已从本契约整体移除，§2.2）且「不再靠词表收口」与新增的 `_EXTERNAL_OBJECT_NOUNS` 不一致。改为「**封闭候选集 + 来源匹配**」，并说明封闭集本身就是词表、被收回的是**虚词表**而非词表路线 |
 

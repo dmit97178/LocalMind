@@ -475,7 +475,7 @@ ToolDef(
 | `document.read` | `sensitive` | **否** | `True`（preflight 显式给出） | `model_summary` |
 | `file.search` | `normal` | **否** | `False`（preflight 显式给出） | `model_summary` |
 
-**必须把两件事分开说**（这是对 FR12「不应触发写操作确认」的准确兑现）：
+**必须把两件事分开说**（这是对 FR10「不应触发写操作确认」的准确兑现）：
 
 1. **不进入副作用路径（已满足，无保留）**：两者都不在 `LOCAL_SIDE_EFFECT_TOOLS`（`src/tools/capabilities.py:8`）内 ⇒ ①不触发写入确认语义；②不参与 `13` 的 `approval_profile="high_impact"` 只升不降合成与扣留；③不受 `16` §1.5 S1/S2 的独占能力约束。**三重均成立，且是结构性事实**（集合隶属决定，不是承诺）。
 2. **内容确认是另一件事，本契约默认对齐 `file.read`**：`file.read` 当前 `sensitive` 且 `preflight_read` 返回 `requires_confirmation=True`（`src/tools/file_tools.py:64`，S14 断言「read→确认」）。`document.read` 是 `file.read` 的**能力超集**，给它 `False` 等于对已有保护做**减法**——那是安全边界的**放宽**，属「安全边界」变更类，本契约**不自行拍板**。
@@ -703,7 +703,7 @@ except Exception as exc:                      # ← 唯一允许 catch 宽泛异
 
 **探针（本契约最强的结构臂之一）**：把任一解析器的 import 提到模块顶层 ⇒ 在**模拟模块缺失**的解释器里 `bootstrap()` 直接失败 ⇒ D11 变红。D11 的断言不是"返回了 `parser_unavailable`"，而是「**应用仍能启动并正常回答一个与本工具无关的问题**」。
 
-### 4.9 解析器可替换性（对应 FR12 的"未来替换解析库不改主循环"）
+### 4.9 解析器可替换性（对应 FR10 的"未来替换解析库不改主循环"）
 
 **本节的硬约束（三条，2026-09-28 实现审查后按下述口径收敛）**：
 
@@ -1244,7 +1244,7 @@ def make_search_tool(settings: dict) -> RegisteredTool: ...
 
 **不得**把 S20 的通过表述为"确认路径的回流输入已验证正确"——已验证的是**它的后果**，不是提示内容本身；后者只有 R16 覆盖。
 
-**另一条照实写明的边界（第四轮新增）**：S20/S21 走**真实 `bootstrap()`**（评估运行器复用真实 App 流程，`requirements.md` FR11），因此它们**确实覆盖了生产装配路径**——这是它们相对单元矩阵的一个真实优势，应当如实写出来。但**仍不得**由"S20 通过"推出"回流在生产配置下可用"：场景跑的是**评估专用配置**（白名单占位符渲染后的 `docs_on` 变体），而**默认生产配置是否接上回流**由 **R19**（默认配置 + `bootstrap()`）承担。两者是**不同配置下的不同断言**，混用即为过度宣称（§0.3 第 8 条 / `requirements.md` 第七条不得宣称）。
+**另一条照实写明的边界（第四轮新增）**：S20/S21 走**真实 `bootstrap()`**（评估运行器复用真实 App 流程，`requirements.md` FR9），因此它们**确实覆盖了生产装配路径**——这是它们相对单元矩阵的一个真实优势，应当如实写出来。但**仍不得**由"S20 通过"推出"回流在生产配置下可用"：场景跑的是**评估专用配置**（白名单占位符渲染后的 `docs_on` 变体），而**默认生产配置是否接上回流**由 **R19**（默认配置 + `bootstrap()`）承担。两者是**不同配置下的不同断言**，混用即为过度宣称（§0.3 第 8 条 / `requirements.md` 第七条不得宣称）。
 
 **必须照实写明的场景层覆盖上限**：`_SETUP_KINDS` 的 `workspace_file` 只能经 `file.write` 写**文本**（`src/evaluation/child.py:86-89`），因此 **S20/S21 只能用 `.md` / `.txt` 夹具**。PDF/DOCX/XLSX/PPTX 的行为由 §12.3 的**单元矩阵**覆盖，**不由评估场景覆盖**。**不得**把"S20 通过"表述为"文档读取在真实 run 里验证过"。二进制夹具的 setup 扩展登记为 §14 第 3 项。
 
@@ -1267,13 +1267,13 @@ def make_search_tool(settings: dict) -> RegisteredTool: ...
 | 文件 | 变更 | 状态 |
 |------|------|:---:|
 | `specs/modules/18-...md` | 本文档（**2026-09-27 第二轮审查后重写**：新增 §1 回流层，重写 §§3.2/5.2/5.3/6/11，订正 §§1.2/1.4/1.5/1.6/4.2/4.3，新增 §§4.4/4.5/15.1/S20-S21 重写；**第三轮审查后**：新增 §0.6 / §1.2.1 `ReflowOutcome` / §1.2.2 多 step 策略 / §1.2.3 冻结原始请求，改写 R14、新增 R16–R18 与 `output_not_contains`，§14 +第 23 项；**第四轮审查后**：新增 §0.7 接线遗漏处置、R19、§15 四条决策行，§0.3 +第 8 条，§11.1/§13.2/§13.3/§16 的 `bootstrap()` 口径订正；**第五轮（Codex 提出）**：新增 §0.8（`tool_defs` 构造期冻结 + `fallback_display` 调用期传入 + "成功是构造性事实"的措辞订正）、§1.2.4 签名块、R20–R21、§15 七条决策行） | 本轮 |
-| `specs/requirements.md` | **FR12 重写**（新增回流层要求、四条阻塞项处置、**R1–R15**；**第三轮**：R16–R18、冻结原始请求的安全口径、非宣称项 +第 ⑤ 条；**第四轮**：R19、`bootstrap()` 装配口径订正、非宣称项 +第 ⑦ 条；**第五轮**：新增⑬（目录走构造期、确定性显示走调用期、"成功"是构造性事实、三个调用点、执行抛错零回流）、R20–R21） | 本轮 |
+| `requirements.md` | **FR10 重写**（新增回流层要求、四条阻塞项处置、**R1–R15**；**第三轮**：R16–R18、冻结原始请求的安全口径、非宣称项 +第 ⑤ 条；**第四轮**：R19、`bootstrap()` 装配口径订正、非宣称项 +第 ⑦ 条；**第五轮**：新增⑬（目录走构造期、确定性显示走调用期、"成功"是构造性事实、三个调用点、执行抛错零回流）、R20–R21） | 本轮 |
 | `specs/modules/00-core-interfaces.md` | **两处接口签名变更**：`ToolDef.result_delivery` + **`ExecutionRecord.result_delivery`**（均追加式、带默认值）；**新增 Core 类型 `ReflowOutcome`** | 本轮 |
 | `specs/modules/00-error-contract.md` | `TOOL_EXEC_ERROR` 13 → **24**；`FILE_ERROR` 闭集化（11 值）；`CONFIG_ERROR` +`tool_config_invalid` +`result_delivery_invalid` | 本轮 |
 | `specs/modules/07-p6a-observability-cli.md` | 记录新增**条件**持久化键 `result_delivery`（两份白名单同步） | 本轮 |
 | `specs/modules/00-adapter-factory.md` | ①**`ExecutionRecord` 字段块 +`result_delivery`**（§1.2 的状态载体）②**示范配置 +3 个表**（`[tools.documents]` / `[tools.search]` / `[reflow]`，只列键名、权威默认值指向 §9.1，**不复制第二份真源**）③**`ReflowOutcome` / `ResultReflow` 块 + `App.__init__` 的 `reflow` 参数 + `App` 状态的 `_pending_user_request`**④**`bootstrap()` 内新增回流层的装配步骤**（`normalize_reflow_config()` + 构造 `ResultReflow` + 传入 `App`）。**ABC 零变更；`bootstrap()` 签名零变更，但**装配步骤有新增**——前版写的"`bootstrap()` 步骤零新增"**作废**（照此实现则生产环境不启用回流，文档总结仍不可用） | 本轮 |
 | `specs/modules/16-...md` | §1.5 生产覆盖表 +2 行；§11 第 2 项补 P7c 复核 | 本轮 |
-| `specs/project-plan.md` | 路线图 **P7c 行** + 立项说明（含回流层）+ 第二至五轮据实修订段 | 本轮 |
+| `project-report.md` | §四概述结果回流，§九记录 P7c 文档读取、工作区搜索和结果回流成果 | 本轮 |
 | `CLAUDE.md` | 「关键设计文档」表 +1 行（含四轮审查摘要） | 本轮 |
 | `specs/progress-summary.md` | P7c 立项段 + 第二至五轮修订段（第四、五轮为**面向老板的宏观叙述**，不写文件英文名，只讲"用什么方法解决什么问题"） | 本轮 |
 | `specs/modules/15-tool-orchestration-hardening.md` | §1.1 增补段：`ToolDef` 新增 `result_delivery` 与 RD1–RD3（与 P7b 的 `egress` 增补同处） | 本轮 |

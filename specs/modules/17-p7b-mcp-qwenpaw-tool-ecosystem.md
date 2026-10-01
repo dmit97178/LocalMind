@@ -6,7 +6,7 @@
 > **2026-09-26 二次修订（老板复审，指出本轮新引入的一处阻塞性自相矛盾 + 两处清理，**未写实现代码**）**：⑥ **删除 E17 的 shell 元字符禁令**——该禁令由**本轮修订**新加入，与 P10 第 ⑥ 臂（用含 `;`/`|` 的字面参数证明未被 shell 解释）**互相否定**（按 E17 那个 provider 在 bootstrap 期就 CONFIG_ERROR，该臂根本跑不起来）；且它**没有安全收益**（`shell=False` + argv 数组 + argv 由代码签发已结构性消灭 shell 注入），却会误伤合法路径（安装目录含 `&`）。E17 改为**只禁 NUL / CR / LF / 空串**（§3 / §5.2）；`00-error-contract.md` 的对应描述同步删除。⑦ **`ProviderSnapshot.failure_reason` 不再就地列举**（原只列四值，已与 §5.3a/§5.4.1 的新增原因脱节）——权威清单统一到 §8.3，并明确它与 `TOOL_EXEC_ERROR.details.reason` **不是同一份清单**（前者不进事件流，且 `tool_reported_error` / `provider_unsupported_content` 发生时 provider **仍健康**，故**不构成** `failure_reason`）。⑧ **子进程 stderr 钉为 `subprocess.DEVNULL`**——原稿「丢弃或诊断缓冲由 Codex 定」留有实现陷阱：实现成 `PIPE` 却不消费会写满管道、子进程阻塞在 `write()`，表现为「调用超时」（§5.2 / §5.4.5 / P10 第 ⑤ 臂）。
 > **2026-09-26 三次修订（实现审查后，`specs/reviews/17-p7b-mcp-qwenpaw-tool-ecosystem-review.md`）**：只改**文档缺陷**，不动接口签名与安全口径——⑨ **§6.3 补第四行**：出站边实现里还有一次「草案重校验」（`validate_tool_call` ⇒ `TOOL_PARAM_ERROR`），原表只写了三行，等于「唯一实现点」漏列一处（兑现 15 号契约「一份实现三层调用」）；⑩ **§8.3 新增 `contract_mismatch_clauses`**——§5.6 明文要求「记失败的那一条编号」，而 §8.3 只列了 `contract_mismatch_count`，**两节互相矛盾**，现按 §8.3 为权威补字段，§5.6 指过去；⑪ **§10.2 P3 的探针改为可实施写法**（原写「`--dump-argv` 臂断言 PID 已不存在」，但 `hang` 臂不会有成功调用、拿不到 PID ⇒ 保留 `Popen` 句柄断 `poll() is not None`）；⑫ **§10.2 P11 ⑥ 补平台边界**（`ignore_sigterm` 依赖 POSIX；Windows 上 `terminate()` = `TerminateProcess`，宽限期不可能触发）；⑬ **§10.2 P10 ① 写明穷尽式断言的判据形式**；⑭ **§10.2 M2 补测试替身要求**（演示服务必须发带哨兵的 `description`/`annotations`，否则该臂无法构造）。以上均为文档与验收口径的收口，不涉接口签名、需求或安全边界。
 > **2026-09-26 四次修订（复审后，只改**文档缺陷**，不动接口签名与安全口径）**：⑮ **§8.3 + §5.6 改正 `not_reported` 的语义**——我在三次修订里把它写成「服务端未提供 `input_schema`」，**与实现不符**：实现用它表示**服务端未自报该工具**（候选缺失或**重复**，即绑不到本地声明那一条），而「自报了但 `inputSchema` 缺失/形状不合」落在 ① `schema_shape`（缺失按 `{}` 处理，天然落 ①）。同时补登记「**能唯一绑定**」这一前置条件——原稿四条检查没交代绑定失败这一档，等于 §5.6 有第五种失败形态却只在诊断字段里存在。⑯ **§9.2 步骤 9 据实改写**：原写 `enabled=...` 暗示该值派生自 `capability_routing.enabled`，实现**恒为 `enabled=False`**，覆盖检查（E13/E14）改为下一行 `validate_active_capabilities(...)` **无条件**跑在**准入集**上。这不是偏差而是更正确的分工（E13 问「声明出来的工具都得有能力覆盖」，与「这次运行开不开能力层」是两个问题；按运行态取值会让关态下这条静态完整性检查**静默消失**），故改写文档而非改实现，并写明运行态覆盖的真实位置（`CompositeToolBackend` 构造 + `ContextAssembler`）。⑰ 表格单元格内代码跨度里的裸 `|`（`` `|` ``）按 GFM 规则转义为 `` `\|` ``（3 行 4 处，纯渲染修正）。以上均不涉接口签名、需求或安全边界。
-> **上游依据**：老板本轮 10 条边界；`project-plan.md` §六 路线图 P7b 行；`16-p7-practical-tools-capability-routing.md`（**直接前置**，§11 第 4 项 / 第 22 项）；`00-adapter-factory.md` §2.1 / §3.4；`13-approval-profile-high-impact.md` §2.4 / 第 134 行；`04-p3-safety-hardening.md` §23 / 第 424 行；`07-p6a-observability-cli.md:361`。
+> **上游依据**：老板本轮 10 条边界；`project-report.md` §九 路线图 P7b 行；`16-p7-practical-tools-capability-routing.md`（**直接前置**，§11 第 4 项 / 第 22 项）；`00-adapter-factory.md` §2.1 / §3.4；`13-approval-profile-high-impact.md` §2.4 / 第 134 行；`04-p3-safety-hardening.md` §23 / 第 424 行；`07-p6a-observability-cli.md:361`。
 > **本契约的性质**：P7b **不新增任何准入路径、不新增任何执行出口、不新增任何提示词段**。它做的是把 P7a 已经立好的三道门（能力路由 / 风险合成 / 唯一副作用出口）**接到一个可扩展的外部来源底座上**，并把「谁能声明权限」这个问题用代码结构回答死。
 
 ---
@@ -19,7 +19,7 @@
 |------|-------------|--------------|
 | `16 §11` 第 4 项 | 「MCP 市场 / 插件平台 / QwenPaw Skills 接入 \| **不做**（P7a）。它们要求**能力的动态声明**（运行时注册），而本契约的能力目录是**编译期常量**——动态声明需要先解决「谁能声明能力、声明如何被信任」，那是一个独立的安全问题」 | 本契约的**第一议题**就是回答这个问题；回答不了就不该开工 |
 | `16 §11` 第 22 项 | 「出站参数标记的泛化 … P7a 只对唯一的出站工具做源码级断言（`weather.current` 的全部参数必须 ∈ `supply_by_echo`），**不引入**通用的「出站工具」标记。触发条件：出现第二个出站工具时，把该断言升级为注册期不变式」 | **P7b 就是那个触发条件**——本契约必须把源码级断言升级为通用注册期不变式（§2.3） |
-| `project-plan.md` §六 P7b 行 | 交付物「白名单工具可执行；QwenPaw Skills 接入」；**前置条件**：P7a 的能力路由与天气在真实运行中验证通过，且「动态能力声明由谁签发」已解决 | 交付物口径与前置条件都在本契约 §10 / §11 里对齐 |
+| `project-report.md` §九 P7b 行 | 交付物为 MCP stdio 工具生态接入底座；前置条件是 P7a 能力路由和首个真实工具已经验证 | 交付物口径与前置条件都在本契约 §10 / §11 里对齐 |
 | `00-adapter-factory.md:217` | 「Adapter 实现（P7 的 MCP 等第三方工具后端）**必须**经 `read_approval_profile()` 归一化，不得自行放宽；`requires_confirmation` 仍只由风险驱动」 | 外部工具的风险/批准档不得来自外部自报（§6.4） |
 
 ### 0.2 P7b 要关掉的三个缺口
@@ -81,7 +81,7 @@
 P7a 的 `file.write` 靠 preflight 判断「目标是否存在、是否工作区外」并据此抬升风险。对一个外部进程，这些**判不了**——它的目标是它内部的事。因此：**外部工具的 preflight 恒为基线（默认实现），准入声明里没有 preflight 字段**。代价照实写明：一个被声明为只读的外部工具可以读任何它能读的东西，`preflight` 不会察觉。
 
 **③ 「QwenPaw Skills 接入」在 v1 的实现形态是「接入点」，不是「适配器」。**
-`project-plan.md` 已把 QwenPaw Skills 定性为 **MCP 标准**（「技能执行 \| QwenPaw Skills（MCP 标准）\| Adapter」）。据此：
+`project-report.md` 将 P7b 的交付物定义为 MCP stdio 工具生态接入底座。据此：
 - 一个 QwenPaw 技能若通过 MCP 暴露 ⇒ **v1 的 MCP 路径已经覆盖它**，不需要第二套后端；
 - 需要一个**原生** `skills_dir` 适配器（即依赖 QwenPaw 运行时）的部分 ⇒ **v1 不做**（§11 第 2 项），触发条件是拿到 QwenPaw 运行时的执行契约（与 `04 §23` 的 ToolGuard L2 同批）。
 - 可替换性由 **`ToolProvider` 接口 + 工厂的单一分支**承载，并由验收矩阵里一个**「第三种 kind」的替身 provider**证明（M6）——不是靠「写了两套」证明。
@@ -1050,7 +1050,7 @@ call_timeout_ms = 10000
 | # | 项 | 状态 | 理由 / 触发条件 |
 |:-:|----|:----:|----------------|
 | 1 | 远端 MCP transport（HTTP/SSE） | **不做** | 需要与 P7a §6 同级的独立出站论证（主机白名单、TLS、重定向、凭据、出站审计、大小与超时）。触发：出现必须远程的工具需求 |
-| 2 | QwenPaw **原生** `skills_dir` 适配器 | **不做** | QwenPaw Skills 已定性为 MCP 标准（`project-plan.md`）⇒ MCP 路径已覆盖；原生化需 QwenPaw 运行时的执行契约。触发：拿到该契约时（与 `04 §23` 的 ToolGuard L2 同批）。**`src/adapters/qwenpaw_adapter.py` 保持占位并在文件头写明本行** |
+| 2 | QwenPaw **原生** `skills_dir` 适配器 | **不做** | `project-report.md` 已采用 MCP stdio Provider 作为外部工具标准接缝；原生化需 QwenPaw 运行时的执行契约。触发：拿到该契约时（与 `04 §23` 的 ToolGuard L2 同批）。**`src/adapters/qwenpaw_adapter.py` 保持占位并在文件头写明本行** |
 | 3 | 「零本地声明自动接入」 | **不做** | 它与裁决 1 直接冲突（自动准入 = 把外部自报当权威）。触发：同一 provider 的工具数使声明成本成为真实瓶颈，且需先给出「自动准入如何不成为权限提升」的论证 |
 | 4 | 外部工具的**进程级沙箱** | **不做**（§0.4 ①） | 需要 OS 级隔离（容器/命名空间/seccomp）。**裁决 6 把 argv 收进代码不构成沙箱**——被声明的进程仍持宿主机权限 ⇒ **FR3 对任意第三方 provider 尚未满足**，只对「本地代码里声明过的 provider」的**工具调用**成立。触发：首个带副作用的动态工具立项时，与沙箱一并论证 |
 | 5 | provider 健康的**运行期事件面** | **不做**（§8.2） | 当前只有诊断快照。触发：需要跨 run 比较 provider 可用性 |
@@ -1113,8 +1113,8 @@ call_timeout_ms = 10000
 | 文件 | 改动 |
 |------|------|
 | `CLAUDE.md` | 必读表新增 `17-p7b-mcp-qwenpaw-tool-ecosystem.md`（P7b 编码前必读） |
-| `specs/requirements.md` | 补 P7b 的功能需求（工具生态接入底座、外部工具的权威归属、首批工具）与非功能约束（**不新增网络或文件目标面**、事件闭集不变）；**2026-09-26 修订**：FR11 补裁决 6（argv 由代码签发）、环境白名单、`close()`/`shutdown()` 生命周期、超时作废协议流、帧结构逐方法、显示净化，以及 FR3 对任意第三方 provider 未满足的据实登记；删去「零新外发面」与「QwenPaw 已接入」口径 |
-| `specs/project-plan.md` | §六 P7b 行的交付物回填（明示「QwenPaw 接入 = MCP 标准 + 换后端**接入点**」）；§tree 里 `qwenpaw_adapter.py` 的层标注。**2026-09-26 修订**：P7b 行删去「零新外发面」与「三项零变更」，补裁决 6 / 环境白名单 / 生命周期 / FR3 未满足的登记 |
+| `requirements.md` | 补 P7b 的功能需求（工具生态接入底座、外部工具的权威归属、首批工具）与非功能约束（**不新增网络或文件目标面**、事件闭集不变）；**2026-09-26 修订**：FR9 补裁决 6（argv 由代码签发）、环境白名单、`close()`/`shutdown()` 生命周期、超时作废协议流、帧结构逐方法、显示净化，以及 FR3 对任意第三方 provider 未满足的据实登记；删去「零新外发面」与「QwenPaw 已接入」口径 |
+| `project-report.md` | §九 P7b 行回填为 MCP stdio 工具生态接入底座；QwenPaw 原生适配保留为可选后端接入点。**2026-09-26 修订**：P7b 行删去「零新外发面」与「三项零变更」，补裁决 6 / 环境白名单 / 生命周期 / FR3 未满足的登记 |
 | `specs/modules/00-core-interfaces.md` | `ToolDef` 字段表加 `egress`；新增 `ToolProvider` 与三个新类型；**2026-09-26**：`ToolBackend` 加 `close()` 默认实现（§2.4）。**属接口签名级变更，故归 Claude 侧**（CLAUDE.md：接口签名由 Claude 主导）；Codex 可调整文件位置/命名/注释等实现细节 |
 | `specs/modules/00-error-contract.md` | `TOOL_EXEC_ERROR.details.reason` 闭集从八值扩到**十三**值（2026-09-26 增 `provider_unsupported_content`）、`CONFIG_ERROR` 新增 P7b reason 子集——**Claude 已按本契约 §7 落定裁定文本**；该文件归 Codex 主导，Codex 负责镜像并补齐本契约未列出的工程细节（`src/` 侧错误码常量、映射函数位置） |
 | `specs/modules/04-p3-safety-hardening.md` | §23 / 第 424 行补一句：ToolGuard L2 的论证已在本契约完成，结论 = 延后 + 触发条件（§11 第 2 项） |

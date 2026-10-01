@@ -427,7 +427,7 @@ def classify_retention(
 
 P2 **不实现** ProjectStore。理由：
 
-1. **信任模型冲突**（[project-plan.md §3.6](../project-plan.md)）：ProjectState 定义为"人工维护、可自动加载"。`touch()` 自动写入模型推断的 `intent_type` 会污染受信任的项目状态。
+1. **信任模型冲突**（[project-report.md §4.5](../../project-report.md)）：ProjectState 定义为"人工维护、可自动加载"。`touch()` 自动写入模型推断的 `intent_type` 会污染受信任的项目状态。
 2. **阶段边界**：项目摘要管理（话题统计、跨会话项目状态）是 P5 目标，不是 P2。P2 聚焦持久化 episode 存储与检索。
 
 P2 仅保留基础设施：

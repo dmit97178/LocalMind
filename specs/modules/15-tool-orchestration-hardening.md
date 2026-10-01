@@ -682,7 +682,7 @@ def decide(self, candidate, cloud_state=None, *, resolution_exhausted,
 | 文件 | 内容 |
 |---|---|
 | `requirements.md` | FR3 增三条子项：工具候选须落在运行时闭集内且参数可校验；完成性陈述只能来源于执行记录；文件类工具共用工作区边界。待澄清项区更新（该开放项已裁决） |
-| `project-plan.md` | §3.2 `TaskPlanner` 段（`:377-382`）改为「草案 + 校验 → 建步」；§3.2 `ContextAssembler` 段（`:355-362`）的 `tool_summaries` 改为 `tool_defs`；§3.5 ToolBackend 护栏段（`:506-509`）补「工具目录是提示词来源，执行权不外露」；架构铁律（`:530-538`）增一条「完成性陈述必须可溯源到执行记录」；§六 路线图加本阶段 |
+| `project-report.md` | §4.3、§5.1 和 §5.4 概述草案校验、能力/工具闭集与执行记录；§2.1 保留完成性陈述可溯源原则；§九记录阶段成果 |
 | `01-p0a-main-loop.md` | `_handle_action` 分支表：空计划按 `reason` 分流 + `reply_provenance` 判定表落点（**2026-09-18 改正**：不是「`requires_user_confirmation` 先于空计划早返回」，而是「空计划不进确认链、有 step 才进」——见 §5.2 权威顺序） |
 | `04-p3-safety-hardening.md` | §3.2/§3.4 三层校验表**增第 0 层（参数形状）**并注明唯一实现；§4.7 防线分层补「参数维度的冗余复核」+ 引用本契约；§4.6b 六条硬约束不变 |
 | `07-p6a-observability-cli.md` | §2.2 `intent_final` **+4 键**、`turn_completed` **+1 键**、`dispatch_decision` reason 闭集扩展；§6 补 `file.read` / `file.list_dir` 的工作区边界与 `FILE_ERROR` 口径（现状只讲 `file.write`）；§10 决策表加行 |

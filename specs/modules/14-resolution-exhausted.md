@@ -291,7 +291,7 @@ def evaluate_cloud_admission(
 | `10-p6d-autonomous-escalation.md` | §4.3 `not_evaluated` 三源 → 二源；§4.5 `evaluate_cloud_admission` 签名与「参数为何必须包含轮次」整段重写（含删除 `_MAX_RESOLUTION_ROUNDS`）；§4.5「读一次传两次」改为锚定 `candidate`/`cloud_state`；§7.1 第 15/15b/15c 项改造；§9 步 4 行 + 新增步 4c；§11 决策表加行 |
 | `11-reference-guard.md` | §3.1 判定顺序表重编号 + 删第 3 行 + 补新第 6 行（`resolution_exhausted`）；§7 `unattributed_ask` 归因清单改名；§8 第 3b 步的目标签名同步；§9 决策表加行 |
 | `08-p6b-evaluation-loop.md` | §6 G3 的 `not_evaluated` 括注、追加 `resolution_exhausted` 聚合；§2.3 S02 行 `unattributed_ask` 归因清单；§2.3 S03 行补两变体分列要求；§9 决策表加行 |
-| `project-plan.md` | §每轮判定顺序（`:229`）删「超轮次 → ASK_USER」、补 exhausted 分流；`:350` 输入行去掉 `round_count` |
+| `project-report.md` | §4.1–§4.2 同步轮次耗尽、提前停止和动作语义；具体判定顺序由本契约定义 |
 | `01-p0a-main-loop.md` | 流程图第 4 步（`:261`）与关键约束（`:322`）改为 `decide(candidate, cloud_state, resolution_exhausted=…)` |
 | `07-p6a-observability-cli.md` | §2.2 `intent_final` 键集 +1（`resolution_exhausted`）+ §10 决策表加行 |
 | `CLAUDE.md` | 必读文档表增 `14-resolution-exhausted.md` |

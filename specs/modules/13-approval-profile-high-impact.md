@@ -288,7 +288,7 @@ effective_profile = max_approval_profile(
 | 文档 | 同步内容 |
 |---|---|
 | `CLAUDE.md` | 关键设计文档表新增 `13-approval-profile-high-impact.md` 一行（P6 编码前必读） |
-| `specs/project-plan.md` | §4.2 / 主循环图新增高影响批准流程：批准档来源、`high_impact` 关闭执行态、与 `dangerous` 的优先级关系 |
+| `project-report.md` | §4.3 概述工具确认链；高影响批准档、关闭执行态及其与 `dangerous` 的优先级由本契约定义 |
 | `12-risk-draft-closed-set.md` | §1.2 三值语义表：`dangerous` 行改写为收窄后的定义 + 排除项；§2.4 反向边界处加指向本契约的链接 |
 | `04-p3-safety-hardening.md` | §4.6 补危险语义收窄说明 + **新增 §4.6b**（`high_impact` 在 P6 不可执行、与 `dangerous` 的区别是**有补救路径**、5 条硬约束、错误码作用域：App 不抛异常 / 仅执行层抛 `SAFETY_IMPACT_CLOSED`）；§4.7 补执行层优先级插入点 |
 | `07-p6a-observability-cli.md` | §6.3：`preflight` 能力与 `PreflightReport` 新增 `approval_profile`；确认/扣留分支的区分（高影响**不**建 pending）；事件字段**不变**（明确声明不扩展 §2.2 封闭集） |

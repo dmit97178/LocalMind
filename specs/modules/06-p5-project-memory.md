@@ -9,7 +9,7 @@
 
 ## 0. 范围与不变量
 
-**目标**：落地 FR6 全量——项目摘要、话题切换检测接入主循环、Project–Conversation 两层持久化、语义检索（关键词 + 向量混合），并把 P3 遗留清单第 1 项（敏感执行结果留存规则）一并钉死。
+**目标**：落地 FR4 全量——项目摘要、话题切换检测接入主循环、Project–Conversation 两层持久化、语义检索（关键词 + 向量混合），并把 P3 遗留清单第 1 项（敏感执行结果留存规则）一并钉死。
 
 **演进声明（不做推倒重来）**：
 - P2 的 `episodes` / `summaries` 表、`schema_version` 迁移框架、`max_search_episodes` 上限**全部保留**。
@@ -173,7 +173,7 @@ class TopicDecision:
 - **语义定为「整个会话的滚动摘要」**：summaries 表主键是 (scope, scope_id)，scope_id=session_id 每会话只有一行；按话题分片存储会与该主键冲突（第二个话题覆盖第一个，且加载时无法判定摘要归属哪个话题）。话题收尾只是**更新触发点**——把刚收尾话题的要点并入滚动摘要后整行覆盖。
 - 更新时机仅两处：topic 收尾（new_topic / shift_with_reference 触发，并入旧 topic 要点）+ 会话结束（EOF，最终覆盖）。
 - 生成：本地模型生成（输入 = 当前滚动摘要 + 旧 topic 内 episode），长度上限 300 字符（不可信文本 → 写入消毒兜底）；模型失败或超时 3 秒 → **确定性降级**（滚动摘要保留，追加该 topic 的 topic 标签 + 轮次计数一行），**不阻塞主循环**。
-- 写入：`save_summary(scope="conversation", scope_id=session_id, summary=...)`，结构 `{"summary": str, "last_updated": str}`；读取策略 = ContextAssembler 仅加载**当前 session_id** 的滚动摘要，跨会话细节一律走 chunk 检索（FR6），不加载历史会话摘要行。
+- 写入：`save_summary(scope="conversation", scope_id=session_id, summary=...)`，结构 `{"summary": str, "last_updated": str}`；读取策略 = ContextAssembler 仅加载**当前 session_id** 的滚动摘要，跨会话细节一律走 chunk 检索（FR4），不加载历史会话摘要行。
 - **摘要行的事实身份（2026-09-24 新增，`05` §2.5 规则 9）**：会话摘要与项目摘要同属**模型推断**，注入上下文时必须带「本地模型推断、未经用户确认」同族固定前缀（与逐字检索片段的前缀不同，见 §2.4），且与 `relevant_history` 中的逐字 episode 片段**可区分**。生成提示词按 §1.3 的固定文本收窄——收窄不改变「生成物是不可信文本」前提，也不替代 §4.1 写入消毒。
 
 ### 2.4 主循环接线顺序（App.handle 每轮）
@@ -554,7 +554,7 @@ summary_max_chars = 2000
 | 2026-09-09 | 会话摘要模型生成失败 → 确定性降级、不阻塞主循环 | 记忆写入是旁路职责，失败不得影响响应主路径（与 _record_turn 异常吞并策略一致） |
 | 2026-09-09 | default.toml 融合权重 vector 0.4 / keyword 0.6 | 本地小库关键词精确命中可靠；向量用于召回关键词漏掉的内容，不反向压制 |
 | 2026-09-09 | 自审修正 5 处：路由表 same_topic/ambiguous 行与不变量 3 对齐（project_switched 独立生效）；§3.5 权重默认值顺序与 §6.1 统一为 (w_kw=0.6, w_vec=0.4)；topic_hints 过滤明确覆盖向量候选；InMemory 配置与向量索引形态钉死；episodes 占位替换列入有意变更清单 | 对抗演练发现的自相矛盾与过滤缺口，见正文对应节 |
-| 2026-09-09 | 外部审查修订 6+2 项：① TopicTracker 按 session_id 隔离状态 + end_session；② 首轮空 topic 强制按 new_topic（防 store_episode 必填校验失败）；③ 会话摘要定为整会话滚动摘要（summaries 主键 (scope, scope_id) 决定，话题收尾仅为更新触发点）；④ 普通检索范围 = 当前项目 ∪ 未归属池，定向检索全库须命中 hints（修复与 E1 的矛盾，对齐 FR6 项目边界）；⑤ VectorIndex.search 增 allowed_ids 且过滤下推到 SQL（防正确话题向量被挤掉）；⑥ 工具原文不入记忆改为结构化保证——ResponseBuilder 分离 display/narrative，_record_turn 接收 ExecutionRecord 列表（正则消毒不足以拦截任意文件内容）；⑦ 融合权重和恒为 1.0；⑧ TopicTracker/ProjectStore 公开契约补全 + episode project_id 统一用归一化值 | 六条实质问题均成立：并发会话串状态、首轮写失败、主键覆盖、E1 矛盾、过滤时机、正则消毒的根本局限 |
+| 2026-09-09 | 外部审查修订 6+2 项：① TopicTracker 按 session_id 隔离状态 + end_session；② 首轮空 topic 强制按 new_topic（防 store_episode 必填校验失败）；③ 会话摘要定为整会话滚动摘要（summaries 主键 (scope, scope_id) 决定，话题收尾仅为更新触发点）；④ 普通检索范围 = 当前项目 ∪ 未归属池，定向检索全库须命中 hints（修复与 E1 的矛盾，对齐 FR4 项目边界）；⑤ VectorIndex.search 增 allowed_ids 且过滤下推到 SQL（防正确话题向量被挤掉）；⑥ 工具原文不入记忆改为结构化保证——ResponseBuilder 分离 display/narrative，_record_turn 接收 ExecutionRecord 列表（正则消毒不足以拦截任意文件内容）；⑦ 融合权重和恒为 1.0；⑧ TopicTracker/ProjectStore 公开契约补全 + episode project_id 统一用归一化值 | 六条实质问题均成立：并发会话串状态、首轮写失败、主键覆盖、E1 矛盾、过滤时机、正则消毒的根本局限 |
 | 2026-09-09 | 外部审查修订第二轮 3 项：① retrieve() 增 `project_id` 关键字参数（后端无从推断当前项目，ContextAssembler 透传 TopicDecision.project_id；None → 仅未归属池）；② allowed_ids 语义钉死为 None=不限制、空集=返回空（实现必须 `is not None` 判断，防 hints 零命中退化为全库检索，配 E12）；③ 口令确认路径写入规则钉死——成功轮 User 段固定占位 + ExecutionRecord 照常、确认文本/token 不进写入参数（结构保证而非消毒兜底）、失败轮不写 episode（防记忆侧信道探测口令），配 E11 | 三条均为实现时无法安全猜测的缺口：接口缺裁剪输入、空集语义二义、P3 提前返回分支绕过写入链 |
 | 2026-09-09 | 外部审查修订第三轮 1 项：MinimalContext 增 `project_id` 字段（ContextAssembler 从 TopicDecision 写入），IntentResolver 多轮检索透传——否则认知轮次 retrieve 默认 None 只落未归属池，项目内记忆丢失。同类排查发现第三处直调点 `_followup_candidates`（P4 云端 evidence）：LocalTaskContext 增 `project_id` 字段（任务创建时从 TopicDecision 记入归一化值），一并钉死；契约新增 retrieve 直调点全量清单（§2.4），后续新增调用必须过范围裁剪 | 接口贯通缺口：范围裁剪参数只接入了主检索一处，认知轮次与云端路径会静默退化 |
 | 2026-09-10 | §2.2 路由表 shift_with_reference 行「会话摘要」列由「正常加载」修订为「旧 topic 收尾更新一次（同 new_topic 行）」 | 实现审查发现的契约疏漏：topic 标签更换即意味着该标签的 `_topic_records` 累积清算（否则记录永不清算、滚动摘要漏掉该话题内容），new_topic 与 shift_with_reference 同为换标签路由，收尾语义必须一致；§1.5 项目切换重置 topic 同理 |

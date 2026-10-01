@@ -421,7 +421,7 @@ effective_risk == "normal" → 放行到 SafetyPolicy.check()（不变）
 }
 ```
 
-后续接入 `QwenPawSafetyBackend`（封装 ToolGuard）时，直接实现 `SafetyBackend` 接口，放入工厂即可。P3 不写 `QwenPawSafetyBackend` 代码——只确保**数据链路**已完整（ExecutionStep → SafetyPolicy → SafetyBackend），届时只需一个适配器文件 + 一行工厂分支。**接入阶段变更（2026-09-20）**：P6 已关闭且未接入该适配器，实际接入随工具生态（P7b 及以后，见 `project-plan.md` §六 与 `16-p7-practical-tools-capability-routing.md` §11）——本节其余内容（数据链路与工厂接缝）不受影响。**P7b 已立项（2026-09-25）但该适配器仍不在其内**：`17` §11 第 2 项给出结论与触发条件（v1 外部工具全只读 ⇒ L2 收益面未出现；触发 = 首个带副作用的动态工具立项）。**接入时仍需遵守 `00-adapter-factory.md:217` 的既有义务**（经 `read_approval_profile()` 归一化、不得自行放宽、`requires_confirmation` 只由风险驱动）。
+后续接入 `QwenPawSafetyBackend`（封装 ToolGuard）时，直接实现 `SafetyBackend` 接口，放入工厂即可。P3 不写 `QwenPawSafetyBackend` 代码——只确保**数据链路**已完整（ExecutionStep → SafetyPolicy → SafetyBackend），届时只需一个适配器文件 + 一行工厂分支。**接入阶段变更（2026-09-20）**：P6 已关闭且未接入该适配器，实际接入随工具生态（P7b 及以后，见 `project-report.md` §九 与 `16-p7-practical-tools-capability-routing.md` §11）——本节其余内容（数据链路与工厂接缝）不受影响。**P7b 已立项（2026-09-25）但该适配器仍不在其内**：`17` §11 第 2 项给出结论与触发条件（v1 外部工具全只读 ⇒ L2 收益面未出现；触发 = 首个带副作用的动态工具立项）。**接入时仍需遵守 `00-adapter-factory.md:217` 的既有义务**（经 `read_approval_profile()` 归一化、不得自行放宽、`requires_confirmation` 只由风险驱动）。
 
 ---
 
